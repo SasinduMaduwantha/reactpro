@@ -2,6 +2,23 @@ import React, { useState } from 'react';
 import { View, TextInput, TouchableOpacity, Text, StyleSheet, ImageBackground, Alert } from 'react-native';
 import { Picker } from '@react-native-picker/picker'; // Import Picker correctly
 import { useRouter } from 'expo-router';
+import { initializeApp } from "firebase/app";
+import { getFirestore, collection, addDoc } from "firebase/firestore";
+
+// Firebase configuration
+const firebaseConfig = {
+  apiKey: "AIzaSyDJk8U5Hr8CMwI0Mgr45LHsk2IQqEiPeOw",
+  authDomain: "exapp-c6ee7.firebaseapp.com",
+  projectId: "exapp-c6ee7",
+  storageBucket: "exapp-c6ee7.firebasestorage.app",
+  messagingSenderId: "95563416478",
+  appId: "1:95563416478:web:6c08202411d43a5869cc8f",
+  measurementId: "G-KT01GYD4QV"
+};
+
+// Initialize Firebase
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
 
 export default function RegistrationScreen() {
   const router = useRouter();
@@ -15,20 +32,34 @@ export default function RegistrationScreen() {
   const clearFields = () => {
     setName('');
     setEmployeeNo('');
-    setJobType('');
+    setJobType('Seller');
     setEmail('');
     setContactNo('');
   };
 
-  // Function to handle Next button click
-  const handleNext = () => {
+  const handleNext = async () => {
     if (!name || !employeeNo || !jobType || !email || !contactNo) {
       Alert.alert('Error', 'Please fill out all fields.', [{ text: 'OK' }]);
     } else {
-      // All fields are filled, navigate to setpassword screen
-      router.push('/setpassword');
+      try {
+        // Add data to Firestore
+        await addDoc(collection(db, "users"), {
+          name,
+          employeeNo,
+          jobType,
+          email,
+          contactNo
+        });
+  
+        // Navigate to SetPasswordScreen and pass the email as a parameter
+        router.push({ pathname: '/setpassword', params: { email } });
+      } catch (e) {
+        Alert.alert('Error', 'Failed to save data. Please try again.', [{ text: 'OK' }]);
+        console.error("Error adding document: ", e);
+      }
     }
   };
+  
 
   return (
     <ImageBackground source={require('@/assets/images/scback1.png')} style={styles.container}>
@@ -50,7 +81,7 @@ export default function RegistrationScreen() {
         <TextInput style={styles.input} placeholder="Contact No" value={contactNo} onChangeText={setContactNo} keyboardType="phone-pad" />
 
         <TouchableOpacity style={styles.button} onPress={handleNext}>
-          <Text style={styles.buttonText}>Next</Text>
+          <Text style={styles.buttonText}>Register</Text>
         </TouchableOpacity>
 
         <TouchableOpacity onPress={clearFields} style={styles.clearButton}>

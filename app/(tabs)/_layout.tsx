@@ -6,6 +6,8 @@ export default function Layout() {
       <Stack.Screen name="index" />
       <Stack.Screen name="explore" />
       <Stack.Screen name="setpassword" />
+      <Stack.Screen name="dashboard" />
+      <Stack.Screen name="forgetpassword" />
       {/* Add other screens as needed */}
     </Stack>
   );
