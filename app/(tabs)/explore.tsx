@@ -1,109 +1,82 @@
-import { StyleSheet, Image, Platform } from 'react-native';
+import React, { useState } from 'react';
+import { View, TextInput, TouchableOpacity, Text, StyleSheet, ImageBackground, Alert } from 'react-native';
+import { Picker } from '@react-native-picker/picker'; // Import Picker correctly
+import { useRouter } from 'expo-router';
 
-import { Collapsible } from '@/components/Collapsible';
-import { ExternalLink } from '@/components/ExternalLink';
-import ParallaxScrollView from '@/components/ParallaxScrollView';
-import { ThemedText } from '@/components/ThemedText';
-import { ThemedView } from '@/components/ThemedView';
-import { IconSymbol } from '@/components/ui/IconSymbol';
+export default function RegistrationScreen() {
+  const router = useRouter();
+  const [name, setName] = useState('');
+  const [employeeNo, setEmployeeNo] = useState('');
+  const [jobType, setJobType] = useState('Seller');
+  const [email, setEmail] = useState('');
+  const [contactNo, setContactNo] = useState('');
 
-export default function TabTwoScreen() {
+  // Clear input fields function
+  const clearFields = () => {
+    setName('');
+    setEmployeeNo('');
+    setJobType('');
+    setEmail('');
+    setContactNo('');
+  };
+
+  // Function to handle Next button click
+  const handleNext = () => {
+    if (!name || !employeeNo || !jobType || !email || !contactNo) {
+      Alert.alert('Error', 'Please fill out all fields.', [{ text: 'OK' }]);
+    } else {
+      // All fields are filled, navigate to setpassword screen
+      router.push('/setpassword');
+    }
+  };
+
   return (
-    <ParallaxScrollView
-      headerBackgroundColor={{ light: '#D0D0D0', dark: '#353636' }}
-      headerImage={
-        <IconSymbol
-          size={310}
-          color="#808080"
-          name="chevron.left.forwardslash.chevron.right"
-          style={styles.headerImage}
-        />
-      }>
-      <ThemedView style={styles.titleContainer}>
-        <ThemedText type="title">Explore</ThemedText>
-      </ThemedView>
-      <ThemedText>This app includes example code to help you get started.</ThemedText>
-      <Collapsible title="File-based routing">
-        <ThemedText>
-          This app has two screens:{' '}
-          <ThemedText type="defaultSemiBold">app/(tabs)/index.tsx</ThemedText> and{' '}
-          <ThemedText type="defaultSemiBold">app/(tabs)/explore.tsx</ThemedText>
-        </ThemedText>
-        <ThemedText>
-          The layout file in <ThemedText type="defaultSemiBold">app/(tabs)/_layout.tsx</ThemedText>{' '}
-          sets up the tab navigator.
-        </ThemedText>
-        <ExternalLink href="https://docs.expo.dev/router/introduction">
-          <ThemedText type="link">Learn more</ThemedText>
-        </ExternalLink>
-      </Collapsible>
-      <Collapsible title="Android, iOS, and web support">
-        <ThemedText>
-          You can open this project on Android, iOS, and the web. To open the web version, press{' '}
-          <ThemedText type="defaultSemiBold">w</ThemedText> in the terminal running this project.
-        </ThemedText>
-      </Collapsible>
-      <Collapsible title="Images">
-        <ThemedText>
-          For static images, you can use the <ThemedText type="defaultSemiBold">@2x</ThemedText> and{' '}
-          <ThemedText type="defaultSemiBold">@3x</ThemedText> suffixes to provide files for
-          different screen densities
-        </ThemedText>
-        <Image source={require('@/assets/images/react-logo.png')} style={{ alignSelf: 'center' }} />
-        <ExternalLink href="https://reactnative.dev/docs/images">
-          <ThemedText type="link">Learn more</ThemedText>
-        </ExternalLink>
-      </Collapsible>
-      <Collapsible title="Custom fonts">
-        <ThemedText>
-          Open <ThemedText type="defaultSemiBold">app/_layout.tsx</ThemedText> to see how to load{' '}
-          <ThemedText style={{ fontFamily: 'SpaceMono' }}>
-            custom fonts such as this one.
-          </ThemedText>
-        </ThemedText>
-        <ExternalLink href="https://docs.expo.dev/versions/latest/sdk/font">
-          <ThemedText type="link">Learn more</ThemedText>
-        </ExternalLink>
-      </Collapsible>
-      <Collapsible title="Light and dark mode components">
-        <ThemedText>
-          This template has light and dark mode support. The{' '}
-          <ThemedText type="defaultSemiBold">useColorScheme()</ThemedText> hook lets you inspect
-          what the user's current color scheme is, and so you can adjust UI colors accordingly.
-        </ThemedText>
-        <ExternalLink href="https://docs.expo.dev/develop/user-interface/color-themes/">
-          <ThemedText type="link">Learn more</ThemedText>
-        </ExternalLink>
-      </Collapsible>
-      <Collapsible title="Animations">
-        <ThemedText>
-          This template includes an example of an animated component. The{' '}
-          <ThemedText type="defaultSemiBold">components/HelloWave.tsx</ThemedText> component uses
-          the powerful <ThemedText type="defaultSemiBold">react-native-reanimated</ThemedText>{' '}
-          library to create a waving hand animation.
-        </ThemedText>
-        {Platform.select({
-          ios: (
-            <ThemedText>
-              The <ThemedText type="defaultSemiBold">components/ParallaxScrollView.tsx</ThemedText>{' '}
-              component provides a parallax effect for the header image.
-            </ThemedText>
-          ),
-        })}
-      </Collapsible>
-    </ParallaxScrollView>
+    <ImageBackground source={require('@/assets/images/scback1.png')} style={styles.container}>
+      <View style={styles.formContainer}>
+        <Text style={styles.title}>Sign Up</Text>
+
+        <TextInput style={styles.input} placeholder="Name" value={name} onChangeText={setName} />
+        <TextInput style={styles.input} placeholder="Employee No" value={employeeNo} onChangeText={setEmployeeNo} />
+
+        <View style={styles.pickerContainer}>
+          <Text style={styles.pickerLabel}>Job Type:</Text>
+          <Picker selectedValue={jobType} onValueChange={(itemValue) => setJobType(itemValue)} style={styles.picker}>
+            <Picker.Item label="Seller" value="Seller" />
+            <Picker.Item label="Deliverer" value="Deliverer" />
+          </Picker>
+        </View>
+
+        <TextInput style={styles.input} placeholder="Email" value={email} onChangeText={setEmail} keyboardType="email-address" />
+        <TextInput style={styles.input} placeholder="Contact No" value={contactNo} onChangeText={setContactNo} keyboardType="phone-pad" />
+
+        <TouchableOpacity style={styles.button} onPress={handleNext}>
+          <Text style={styles.buttonText}>Next</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity onPress={clearFields} style={styles.clearButton}>
+          <Text style={styles.clearButtonText}>Clear All</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity onPress={() => router.push('/')} style={styles.signInContainer}>
+          <Text style={styles.signIn}>Already have an account? Sign In</Text>
+        </TouchableOpacity>
+      </View>
+    </ImageBackground>
   );
 }
 
 const styles = StyleSheet.create({
-  headerImage: {
-    color: '#808080',
-    bottom: -90,
-    left: -35,
-    position: 'absolute',
-  },
-  titleContainer: {
-    flexDirection: 'row',
-    gap: 8,
-  },
+  container: { flex: 1, justifyContent: 'center', padding: 20 },
+  formContainer: { backgroundColor: 'rgba(255, 255, 255, 0.8)', padding: 20, borderRadius: 10 },
+  title: { fontSize: 24, fontWeight: 'bold', textAlign: 'center', marginBottom: 20 },
+  input: { width: '100%', padding: 10, borderWidth: 1, borderRadius: 5, marginBottom: 10 },
+  pickerContainer: { marginBottom: 10 },
+  pickerLabel: { fontSize: 16, fontWeight: 'bold', marginBottom: 5 },
+  picker: { width: '100%' },
+  button: { backgroundColor: 'blue', padding: 10, borderRadius: 5, alignItems: 'center', marginBottom: 10 },
+  buttonText: { color: 'white', fontSize: 16 },
+  clearButton: { backgroundColor: 'white', padding: 10, borderWidth: 1, borderRadius: 5, alignItems: 'center', marginBottom: 10 },
+  clearButtonText: { color: 'black', fontSize: 16 },
+  signInContainer: { alignItems: 'center' },
+  signIn: { textAlign: 'center', color: 'blue', marginTop: 20 },
 });
