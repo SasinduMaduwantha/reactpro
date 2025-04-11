@@ -1,43 +1,58 @@
 import React, { useState } from 'react';
 import { View, TextInput, TouchableOpacity, Text, StyleSheet, Alert, ImageBackground } from 'react-native';
+import { getAuth, sendPasswordResetEmail } from 'firebase/auth';
+import { initializeApp } from 'firebase/app';
 import { useRouter } from 'expo-router';
+
+// Firebase config
+const firebaseConfig = {
+  apiKey: "AIzaSyDJk8U5Hr8CMwI0Mgr45LHsk2IQqEiPeOw",
+  authDomain: "exapp-c6ee7.firebaseapp.com",
+  projectId: "exapp-c6ee7",
+  storageBucket: "exapp-c6ee7.firebasestorage.app",
+  messagingSenderId: "95563416478",
+  appId: "1:95563416478:web:6c08202411d43a5869cc8f",
+  measurementId: "G-KT01GYD4QV"
+};
+
+// Initialize Firebase App and Auth
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
 
 export default function ForgotPasswordScreen() {
   const router = useRouter();
-  const [employeeNumber, setEmployeeNumber] = useState<string>('');
-  const [otp, setOtp] = useState<string>('');
-  const [newPassword, setNewPassword] = useState<string>('');
-  const [confirmPassword, setConfirmPassword] = useState<string>('');
+  const [email, setEmail] = useState('');
 
-  // Function to send OTP (you need to implement OTP sending logic)
-  const sendOtp = () => {
-    if (!employeeNumber) {
-      Alert.alert('Error', 'Please enter your employee number.');
+  const handleClear = ()=>{
+    setEmail ('');
+  }
+  const handleForgotPassword = async () => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+    if (!email) {
+      Alert.alert("Validation Error", "Please enter your email.");
       return;
     }
 
-    // Add OTP sending logic here (e.g., Firebase or API)
-    Alert.alert('OTP Sent', 'An OTP has been sent to your registered phone/email.');
-  };
-
-  // Function to handle password reset
-  const handleResetPassword = () => {
-    if (!otp) {
-      Alert.alert('Error', 'Please enter the OTP sent to you.');
-      return;
-    }
-    if (!newPassword || !confirmPassword) {
-      Alert.alert('Error', 'Please enter both new password and confirm password.');
-      return;
-    }
-    if (newPassword !== confirmPassword) {
-      Alert.alert('Error', 'Passwords do not match.');
+    if (!emailRegex.test(email)) {
+      Alert.alert("Validation Error", "Please enter a valid email address.");
       return;
     }
 
-    // Add password reset logic here (e.g., Firebase or API)
-    Alert.alert('Success', 'Your password has been successfully reset.');
-    router.push('/');
+    try {
+      await sendPasswordResetEmail(auth, email);
+      Alert.alert("Success", "Password reset email sent. Please check your inbox.");
+      router.push('/');
+    } catch (error: any) {
+      console.error("Reset Password Error:", error);
+      if (error.code === 'auth/user-not-found') {
+        Alert.alert("Error", "This email is not registered. Please check and try again.");
+      } else if (error.code === 'auth/invalid-email') {
+        Alert.alert("Error", "The email address is badly formatted.");
+      } else {
+        Alert.alert("Error", error.message || "Something went wrong. Please try again.");
+      }
+    }
   };
 
   return (
@@ -45,53 +60,22 @@ export default function ForgotPasswordScreen() {
       <View style={styles.container}>
         <Text style={styles.title}>Forgot Password</Text>
 
-        {/* Employee Number Input */}
         <TextInput
           style={styles.input}
-          placeholder="Enter Employee Number"
-          value={employeeNumber}
-          onChangeText={setEmployeeNumber}
-          keyboardType="numeric"
+          placeholder="Enter your email"
+          value={email}
+          onChangeText={setEmail}
+          keyboardType="email-address"
+          autoCapitalize="none"
         />
 
-        {/* Send OTP Button */}
-        <TouchableOpacity style={styles.button} onPress={sendOtp}>
-          <Text style={styles.buttonText}>Send OTP</Text>
+        <TouchableOpacity style={styles.button} onPress={handleForgotPassword}>
+          <Text style={styles.buttonText}>Send Reset Email</Text>
         </TouchableOpacity>
 
-        {/* OTP Input */}
-        <TextInput
-          style={styles.input}
-          placeholder="Enter OTP"
-          value={otp}
-          onChangeText={setOtp}
-          keyboardType="numeric"
-        />
-
-        {/* New Password Input */}
-        <TextInput
-          style={styles.input}
-          placeholder="Enter New Password"
-          value={newPassword}
-          onChangeText={setNewPassword}
-          secureTextEntry
-        />
-
-        {/* Confirm Password Input */}
-        <TextInput
-          style={styles.input}
-          placeholder="Confirm New Password"
-          value={confirmPassword}
-          onChangeText={setConfirmPassword}
-          secureTextEntry
-        />
-
-        {/* Submit Button */}
-        <TouchableOpacity style={styles.button} onPress={handleResetPassword}>
-          <Text style={styles.buttonText}>Submit</Text>
+        <TouchableOpacity style={styles.clearbutton} onPress={handleClear}>
+          <Text style={styles.clearbuttonText}>Clear</Text>
         </TouchableOpacity>
-
-        
       </View>
     </ImageBackground>
   );
@@ -109,7 +93,7 @@ const styles = StyleSheet.create({
     width: '80%',
     padding: 20,
     borderRadius: 10,
-    backgroundColor: 'rgba(255, 255, 255, 0.8)', // Semi-transparent white background for the form
+    backgroundColor: 'rgba(255, 255, 255, 0.8)',
   },
   title: {
     fontSize: 24,
@@ -137,6 +121,20 @@ const styles = StyleSheet.create({
     color: 'white',
     fontSize: 16,
     fontWeight: 'bold',
-  }
-  
+  },
+  clearbutton: {
+    backgroundColor: 'white',
+    padding: 12,
+    borderRadius: 5,
+    borderWidth: 1,
+    borderColor:'black',
+    alignItems: 'center',
+    width: '100%',
+    marginBottom: 20,
+  },
+  clearbuttonText: {
+    color: 'black',
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
 });

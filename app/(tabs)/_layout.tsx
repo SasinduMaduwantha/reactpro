@@ -8,6 +8,8 @@ export default function Layout() {
       <Stack.Screen name="setpassword" />
       <Stack.Screen name="dashboard" />
       <Stack.Screen name="forgetpassword" />
+      <Stack.Screen name="manageprofile" />
+      <Stack.Screen name="stock" />
       {/* Add other screens as needed */}
     </Stack>
   );

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { View, TextInput, TouchableOpacity, Text, StyleSheet, ImageBackground, Alert } from 'react-native';
+import { View, TextInput, TouchableOpacity, Text, StyleSheet, ImageBackground, Alert, BackHandler } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
-import * as Crypto from 'expo-crypto';  // Import expo-crypto for hashing
+import * as Crypto from 'expo-crypto';  
 import { initializeApp } from "firebase/app";
 import { getFirestore, collection, addDoc } from "firebase/firestore";
 
@@ -22,84 +22,89 @@ const db = getFirestore(app);
 
 export default function SetPasswordScreen() {
   const router = useRouter();
-  const { email: passedEmail } = useLocalSearchParams(); // Get email from RegistrationScreen
+  const { email: passedEmail } = useLocalSearchParams(); 
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
 
-  // Set the email when the component mounts
   useEffect(() => {
     if (passedEmail) {
       setEmail(Array.isArray(passedEmail) ? passedEmail[0] : passedEmail);
     }
   }, [passedEmail]);
 
-  // Prevent the email field from being edited
+  // Disable back button until passwords are set
+  useEffect(() => {
+    const handleBackPress = () => {
+      if (!password || !confirmPassword) {
+        Alert.alert("Action Denied", "You must set your password before leaving this page.", [{ text: "OK" }]);
+        return true; 
+      }
+      return false; 
+    };
+
+    BackHandler.addEventListener('hardwareBackPress', handleBackPress);
+
+    return () => {
+      BackHandler.removeEventListener('hardwareBackPress', handleBackPress);
+    };
+  }, [password, confirmPassword]);
+
   const handleEmailChange = () => {
     Alert.alert("Email Locked", "You cannot change the email address.", [{ text: "OK" }]);
   };
 
-  // Password validation function
   const validatePassword = (password: string): string | null => {
-    const minLength = /.{8,}/; // Minimum 8 characters
-    const upperCase = /[A-Z]/; // At least one uppercase letter
-    const lowerCase = /[a-z]/; // At least one lowercase letter
-    const number = /[0-9]/; // At least one number
-    const specialChar = /[!@#$%^&*]/; // At least one special character
-
-    if (!minLength.test(password)) {
-      return "Password must be at least 8 characters long.";
-    } else if (!upperCase.test(password)) {
-      return "Password must contain at least one uppercase letter.";
-    } else if (!lowerCase.test(password)) {
-      return "Password must contain at least one lowercase letter.";
-    } else if (!number.test(password)) {
-      return "Password must contain at least one number.";
-    } else if (!specialChar.test(password)) {
-      return "Password must contain at least one special character (!@#$%^&*).";
-    }
-    return null; // Password is valid
+    const minLength = /.{8,}/;
+    const upperCase = /[A-Z]/;
+    const lowerCase = /[a-z]/;
+    const number = /[0-9]/;
+    const specialChar = /[!@#$%^&*]/;
+  
+    if (!minLength.test(password)) return "Password must be at least 8 characters long.";
+    if (!upperCase.test(password)) return "Password must contain at least one uppercase letter.";
+    if (!lowerCase.test(password)) return "Password must contain at least one lowercase letter.";
+    if (!number.test(password)) return "Password must contain at least one number.";
+    if (!specialChar.test(password)) return "Password must contain at least one special character (!@#$%^&*).";
+  
+    return null;
   };
 
-  // Hash the password using expo-crypto
-  const hashPassword = async (password: string) => {
-    const hashedPassword = await Crypto.digestStringAsync(
-      Crypto.CryptoDigestAlgorithm.SHA256,
-      password
-    );
-    return hashedPassword;
+  const hashPassword = async (password: string): Promise<string> => {
+    return await Crypto.digestStringAsync(Crypto.CryptoDigestAlgorithm.SHA256, password);
   };
 
   const handleRegister = async () => {
-    if (!email || !password || !confirmPassword) {
+    if (!password || !confirmPassword) {
       Alert.alert('Error', 'Please fill out all fields.', [{ text: 'OK' }]);
-    } else if (password !== confirmPassword) {
+      return;
+    }
+    if (password !== confirmPassword) {
       Alert.alert('Error', 'Passwords do not match.', [{ text: 'OK' }]);
-    } else {
-      const passwordError = validatePassword(password);
-      if (passwordError) {
-        Alert.alert('Weak Password', passwordError, [{ text: 'OK' }]);
-        return;
-      }
+      return;
+    }
 
-      try {
-        // Hash the password before storing it
-        const hashedPassword = await hashPassword(password);
+    const passwordError = validatePassword(password);
+    if (passwordError) {
+      Alert.alert('Weak Password', passwordError, [{ text: 'OK' }]);
+      return;
+    }
 
-        // Store user authentication data in Firestore (No plain-text password storage!)
-        await addDoc(collection(db, "Authentication"), {
-          email: email,
-          passwordHash: hashedPassword, // Store the hashed password
-          createdAt: new Date(),
-        });
+    try {
+      const hashedPassword = await hashPassword(password);
 
-        Alert.alert('Success', 'Password set successfully! You can now sign in.');
-        router.push('/'); // Redirect to login screen
-      } catch (error) {
-        console.error("Error saving password:", error);
-        Alert.alert('Error', 'Failed to save data. Please try again.', [{ text: 'OK' }]);
-      }
+      await addDoc(collection(db, "Authentication"), {
+        email: email,
+        passwordHash: hashedPassword,
+        createdAt: new Date(),
+      });
+
+      Alert.alert('Success', 'Password set successfully! You can now sign in.');
+      router.push('/');
+    } catch (error) {
+      console.error("Error saving password:", error);
+      Alert.alert('Error', 'Failed to save data. Please try again.', [{ text: 'OK' }]);
     }
   };
 
@@ -108,16 +113,14 @@ export default function SetPasswordScreen() {
       <View style={styles.formContainer}>
         <Text style={styles.title}>Set Up Password</Text>
 
-        {/* Email Field (Read-Only) */}
         <TextInput
           style={[styles.input, styles.disabledInput]}
           placeholder="Email"
           value={email}
-          editable={false} // Make it read-only
-          onFocus={handleEmailChange} // Prevent user from editing
+          editable={false}
+          onFocus={handleEmailChange}
         />
 
-        {/* Password Field */}
         <TextInput
           style={styles.input}
           placeholder="Password"
@@ -126,7 +129,6 @@ export default function SetPasswordScreen() {
           secureTextEntry
         />
 
-        {/* Confirm Password Field */}
         <TextInput
           style={styles.input}
           placeholder="Confirm Password"
@@ -135,14 +137,8 @@ export default function SetPasswordScreen() {
           secureTextEntry
         />
 
-        {/* Register Button */}
         <TouchableOpacity style={styles.button} onPress={handleRegister}>
           <Text style={styles.buttonText}>Confirm</Text>
-        </TouchableOpacity>
-
-        {/* Back to Login */}
-        <TouchableOpacity onPress={() => router.push('/')} style={styles.signInContainer}>
-          <Text style={styles.signIn}>Already have an account? Sign In</Text>
         </TouchableOpacity>
       </View>
     </ImageBackground>
@@ -154,9 +150,7 @@ const styles = StyleSheet.create({
   formContainer: { backgroundColor: 'rgba(255, 255, 255, 0.8)', padding: 20, borderRadius: 10 },
   title: { fontSize: 24, fontWeight: 'bold', textAlign: 'center', marginBottom: 20 },
   input: { width: '100%', padding: 10, borderWidth: 1, borderRadius: 5, marginBottom: 10 },
-  disabledInput: { backgroundColor: '#e0e0e0' }, // Grey out email field
+  disabledInput: { backgroundColor: '#e0e0e0' },
   button: { backgroundColor: 'blue', padding: 10, borderRadius: 5, alignItems: 'center', marginBottom: 10 },
   buttonText: { color: 'white', fontSize: 16 },
-  signInContainer: { alignItems: 'center' },
-  signIn: { textAlign: 'center', color: 'blue', marginTop: 20 },
 });
