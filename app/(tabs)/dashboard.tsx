@@ -204,7 +204,7 @@ export default function DashboardScreen() {
             <Image source={require('@/assets/images/stock.png')} style={styles.cardImage} />
             <Text style={styles.cardText}>Check Stock</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.card} onPress={() => alert('Place Order Clicked')}>
+          <TouchableOpacity style={styles.card} onPress={() => router.push('/invoice')}>
             <Image source={require('@/assets/images/order.png')} style={styles.cardImage} />
             <Text style={styles.cardText}>Place Order</Text>
           </TouchableOpacity>

@@ -82,6 +82,10 @@ export default function ProfileManagementScreen() {
       Alert.alert('Error', 'Please fill out all fields.');
       return;
     }
+    if (contactNo.length !== 10 || !/^\d+$/.test(contactNo)) {
+          Alert.alert('Error', 'Contact number must be 10 digits.');
+          return;
+        }
    
 
     try {
