@@ -54,7 +54,9 @@
     "react-native-web": "~0.19.13",
     "react-native-webview": "13.12.5",
     "recharts": "^2.15.1",
-    "victory-native": "^36.6.8"
+    "victory-native": "^36.6.8",
+    "react-native-maps": "1.18.0",
+    "expo-location": "~18.0.10"
   },
   "devDependencies": {
     "@babel/core": "^7.25.2",

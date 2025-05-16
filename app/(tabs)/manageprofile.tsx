@@ -56,6 +56,8 @@ export default function ProfileManagementScreen() {
     fetchUserData();
   }, []);
 
+
+  
   // Handle profile image selection
   const handleProfileImagePick = async () => {
     const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();

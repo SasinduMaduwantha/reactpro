@@ -238,7 +238,7 @@ export default function DashboardScreen() {
             <Image source={require('@/assets/images/history.png')} style={styles.cardImage} />
             <Text style={styles.cardText}>History</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.card} onPress={() => alert('Check delivery Clicked')}>
+          <TouchableOpacity style={styles.card} onPress={() => router.push('/(tabs)/deliveries')}>
             <Image source={require('@/assets/images/delivery.png')} style={styles.cardImage} />
             <Text style={styles.cardText}>Check Delivery</Text>
           </TouchableOpacity>
